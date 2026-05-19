@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Device Logic Engine</title>
+    <!-- Style import which will be handled in the next step -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <h1 class="title">Universal Unlocker</h1>
+            <p class="subtitle">Mirror-Light Logic Engine v1.0.0</p>
+        </header>
 
+        <!-- Main Display for Device Connection Status -->
+        <section class="status-panel">
+            <div class="status-indicator" id="connection-status">
+                <span class="pulse-dot idle"></span>
+                <span id="status-text">SYSTEM IDLE - AWAITING HARDWARE</span>
+            </div>
+            <!-- Live Monitor for the 10 Mirrors state tracking -->
+            <div class="mirror-monitor" id="mirror-display">
+                <div class="mirror-node active" id="m1">M1</div>
+                <div class="mirror-node" id="m2">M2</div>
+                <div class="mirror-node" id="m3">M3</div>
+                <div class="mirror-node" id="m4">M4</div>
+                <div class="mirror-node" id="m5">M5</div>
+                <div class="mirror-node" id="m6">M6</div>
+                <div class="mirror-node" id="m7">M7</div>
+                <div class="mirror-node" id="m8">M8</div>
+                <div class="mirror-node" id="m9">M9</div>
+                <div class="mirror-node" id="m10">M10</div>
+            </div>
+        </section>
+
+        <!-- Dynamic Information Panel -->
+        <section class="info-panel">
+            <div class="info-box">
+                <label>Detected Chipset:</label>
+                <span id="chipset-type">NONE</span>
+            </div>
+            <div class="info-box">
+                <label>Hardware ID (VID:PID):</label>
+                <span id="hardware-id">0000:0000</span>
+            </div>
+        </section>
+
+        <!-- Single-Click Action Panels -->
+        <section class="control-panel">
+            <div class="action-grid">
+                <button class="btn btn-exploit" id="btn-mtk" disabled>Bypass MTK BROM</button>
+                <button class="btn btn-exploit" id="btn-qualcomm" disabled>Unlock Qualcomm EDL</button>
+                <button class="btn btn-exploit" id="btn-samsung" disabled>Reset Samsung FRP</button>
+                <button class="btn btn-exploit" id="btn-apple" disabled>Trigger Pongo DFU</button>
+            </div>
+            
+            <!-- Global Emergency Stop (The Black Stone Gate) -->
+            <div class="emergency-zone">
+                <button class="btn btn-danger" id="btn-black-stone">EMERGENCY STOP (BLACK STONE)</button>
+            </div>
+        </section>
+
+        <!-- Execution Terminal Logs -->
+        <footer class="terminal-panel">
+            <div class="terminal-header">
+                <span>Execution Logs</span>
+                <button class="btn-clear" id="btn-clear-logs">Clear</button>
+            </div>
+            <div class="terminal-body" id="terminal-output">
+                <div class="log-line info">[SYSTEM] Initialization completed. Ready to route data beams.</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Script import which will hold our logic communications -->
+    <script src="main.js" type="module"></script>
+</body>
+</html>
