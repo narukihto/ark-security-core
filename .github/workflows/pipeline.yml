@@ -1,0 +1,97 @@
+# .github/workflows/pipeline.yml
+name: "Universal Unlocker Production Pipeline"
+
+on:
+  push:
+    branches: [ "main", "release/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  audit-and-verify:
+    name: "Rigid Security Audit & Code Verification"
+    runs-on: windows-2022
+    
+    steps:
+      - name: "Checkout Code Repository"
+        uses: actions/checkout@v4
+
+      - name: "Initialize Production Rust Toolchain"
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: "Cache Cargo Dependencies"
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-audit-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: "Enforce Code Style Constraints (Format Check)"
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+
+      - name: "Execute Static Analysis & Lints (Clippy)"
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+      - name: "Run Rigorous Integrity & Security Simulation Suite"
+        run: cargo test --manifest-path src-tauri/Cargo.toml --verbose
+
+  build-production-exe:
+    name: "Compile Secure Win10/11 Production Artifact"
+    needs: audit-and-verify
+    runs-on: windows-2022
+
+    steps:
+      - name: "Checkout Code Repository"
+        uses: actions/checkout@v4
+
+      - name: "Setup Node.js Environment for Frontend Bundling"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 
+      - name: "Generate Package Lock & Install Frontend Dependencies"
+      
+        run: npm install
+
+      - name: "Initialize Production Rust Toolchain"
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: "Cache Cargo Production Binary Allocations"
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: "Build Tauri Production Bundle (.EXE / .MSI)"
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v1.0.0 
+          releaseName: "Ark Security Core v1.0.0"
+          releaseBody: "Automated production bundle containing hardened architectural modules with Admin Manifest privileges fixed."
+          releaseDraft: true
+          prerelease: false
+
+      - name: "Upload Hardened Production Artifacts"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Ark-Security-Core-Windows-Production"
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 7
