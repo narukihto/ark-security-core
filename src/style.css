@@ -1,1 +1,284 @@
+/* src/style.css */
 
+/* Core System Reset & CSS Variables */
+:root {
+    --bg-primary: #0a0c10;
+    --bg-secondary: #141822;
+    --bg-terminal: #05070a;
+    --text-main: #e6edf3;
+    --text-muted: #7d8590;
+    --accent-blue: #2f81f7;
+    --accent-green: #238636;
+    --accent-orange: #d29922;
+    --accent-red: #da3633;
+    --border-color: #30363d;
+    --font-stack: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none; /* Prevents accidental UI text highlighting during operations */
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: var(--font-stack);
+    height: 100vh;
+    overflow: hidden;
+    padding: 15px;
+}
+
+/* Master Application Container */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 15px;
+}
+
+/* Header Configurations */
+.app-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.app-header .title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.app-header .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+/* Hardware Status Panel */
+.status-panel {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+/* The Live Asynchronous Pulse Dot */
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.pulse-dot.idle {
+    background-color: var(--text-muted);
+    box-shadow: 0 0 0 rgba(125, 133, 144, 0.4);
+}
+
+.pulse-dot.connected {
+    background-color: var(--accent-orange);
+    animation: pulse-animation 1.5s infinite;
+}
+
+@keyframes pulse-animation {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(210, 153, 34, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(210, 153, 34, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(210, 153, 34, 0); }
+}
+
+/* 10 Mirrors Grid Monitor Architecture */
+.mirror-monitor {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+}
+
+.mirror-node {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--text-muted);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active Mirror Beam Illumination */
+.mirror-node.active {
+    background: linear-gradient(135deg, #1f4e89, var(--accent-blue));
+    color: #ffffff;
+    border-color: #58a6ff;
+    box-shadow: 0 0 10px rgba(47, 129, 247, 0.5);
+    text-shadow: 0 0 4px #ffffff;
+}
+
+/* Metadata Info Boxes */
+.info-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.info-box {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.info-box label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.info-box span {
+    font-family: monospace;
+    font-weight: bold;
+    color: var(--accent-blue);
+}
+
+/* Control Panel Grid and Operations Buttons */
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.btn {
+    font-family: var(--font-stack);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    outline: none;
+}
+
+.btn-exploit {
+    background-color: #21262d;
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+.btn-exploit:hover:not(:disabled) {
+    background-color: #30363d;
+    border-color: #8b949e;
+}
+
+.btn-exploit:disabled {
+    background-color: #161b22;
+    border-color: #21262d;
+    color: #484f58;
+    cursor: not-allowed;
+}
+
+/* Enabled Target Highlight State */
+.btn-exploit:not(:disabled) {
+    background-color: #238636;
+    border-color: #2ea44f;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(35, 134, 54, 0.3);
+}
+
+/* Black Stone - Critical Emergency Button */
+.emergency-zone {
+    width: 100%;
+}
+
+.btn-danger {
+    width: 100%;
+    background-color: #21262d;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    letter-spacing: 0.5px;
+}
+
+.btn-danger:hover {
+    background-color: var(--accent-red);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(218, 54, 51, 0.4);
+}
+
+/* Terminal Panel Log Views */
+.terminal-panel {
+    flex-grow: 1;
+    background-color: var(--bg-terminal);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.terminal-header {
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 6px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--text-muted);
+}
+
+.btn-clear {
+    background: none;
+    border: none;
+    color: var(--accent-blue);
+    cursor: pointer;
+    font-family: monospace;
+}
+
+.btn-clear:hover {
+    text-decoration: underline;
+}
+
+.terminal-body {
+    padding: 10px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Real-time Logger Colors mapping directly with main.js payload classes */
+.log-line {
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+}
+
+.log-line.info { color: #8b949e; }
+.log-line.success { color: #58a6ff; font-weight: bold; }
+.log-line.warning { color: var(--accent-orange); }
+.log-line.error { color: #ff7b72; font-weight: bold; }
