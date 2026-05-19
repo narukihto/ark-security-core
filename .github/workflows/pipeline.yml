@@ -34,9 +34,10 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             src-tauri/target/
-          key: ${{ runner.os }}-cargo-audit-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-audit-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: "Enforce Code Style Constraints (Format Check)"
+        # تم تعديل المسار هنا ليكون مباشر ومحمي
         run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 
       - name: "Execute Static Analysis & Lints (Clippy)"
@@ -57,9 +58,10 @@ jobs:
       - name: "Setup Node.js Environment for Frontend Bundling"
         uses: actions/setup-node@v4
         with:
-          node-version: 18 
+          node-version: 18
+          cache: "npm"
+
       - name: "Generate Package Lock & Install Frontend Dependencies"
-      
         run: npm install
 
       - name: "Initialize Production Rust Toolchain"
@@ -74,16 +76,17 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             src-tauri/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: "Build Tauri Production Bundle (.EXE / .MSI)"
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v1.0.0 
+          projectPath: "." # إجبار التاوري على قراءة النواة من الجذر الفعلي للـ workspace
+          tagName: v1.0.0
           releaseName: "Ark Security Core v1.0.0"
-          releaseBody: "Automated production bundle containing hardened architectural modules with Admin Manifest privileges fixed."
+          releaseBody: "Automated production bundle containing hardened architectural modules."
           releaseDraft: true
           prerelease: false
 
