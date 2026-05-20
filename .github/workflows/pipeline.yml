@@ -1,4 +1,3 @@
-# .github/workflows/pipeline.yml
 name: "Universal Unlocker Production Pipeline"
 
 on:
@@ -29,15 +28,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
+            ~  / .cargo/bin/
+            ~  / .cargo/registry/index/
+            ~  / .cargo/registry/cache/
+            ~  / .cargo/git/db/
             src-tauri/target/
           key: ${{ runner.os }}-cargo-audit-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: "Auto-Generate Placeholder Icon for Audit Stage"
-        # تم تحديث مصفوفة البايتات هنا لمنع فشل تجميع سياق الماكرو (tauri::generate_context)
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "src-tauri/icons"
@@ -87,15 +85,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
+            ~  / .cargo/bin/
+            ~  / .cargo/registry/index/
+            ~  / .cargo/registry/cache/
+            ~  / .cargo/git/db/
             src-tauri/target/
           key: ${{ runner.os }}-cargo-build-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: "Auto-Generate Placeholder Icon for Build Stage"
-        # تم التحديث والمزامنة هنا أيضاً لضمان مطابقة الترويسات أثناء البناء النهائي للحزم
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "src-tauri/icons"
@@ -119,6 +116,8 @@ jobs:
           releaseBody: "Automated production bundle containing hardened architectural modules. Flat repository structure fully synchronized."
           releaseDraft: true
           prerelease: false
+          
+          args: ""
 
       - name: "Upload Hardened Production Artifacts"
         uses: actions/upload-artifact@v4
