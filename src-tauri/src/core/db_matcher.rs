@@ -3,6 +3,9 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
+
+#![allow(dead_code)]
+
 /// Supported Hardware Chipset categories within the Universal Unlocker architecture
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ChipsetPlatform {
