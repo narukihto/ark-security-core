@@ -18,7 +18,10 @@ fn main() {
 /// Generates and links an application manifest file to enforce 'Run as Administrator' behavior
 fn embed_windows_admin_manifest() {
     let out_dir = std::env::var("OUT_DIR").expect("Fatal: OUT_DIR environment variable is missing.");
+    
+    // 1. تحديد المسارات المستهدفة للمانيفست وملف الـ Resource الوسيط
     let manifest_path = std::path::Path::new(&out_dir).join("admin_privileges.manifest");
+    let rc_path = std::path::Path::new(&out_dir).join("resources.rc");
 
     // Raw XML string definition for the execution level assembly
     let manifest_content = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -41,9 +44,19 @@ fn embed_windows_admin_manifest() {
     file.write_all(manifest_content.as_bytes())
         .expect("Fatal Build Error: Failed to write embedded manifest structural payload.");
 
-    // Fix for embed-resource v2.5.2: Supply an empty array/iterator for the mandatory macros argument
-    // تم تمرير مصفوفة فارغة `None::<&str>` لملء المعامل الثاني المطلوب برمجياً
-    embed_resource::compile(&manifest_path, None::<&str>);
+    
+    let rc_content = format!(
+        "1 24 \"{}\"",
+        manifest_path.to_str().unwrap().replace("\\", "\\\\")
+    );
+
+    let mut rc_file = std::fs::File::create(&rc_path)
+        .expect("Fatal Build Error: Unable to create temporary .rc resource file container.");
+    rc_file.write_all(rc_content.as_bytes())
+        .expect("Fatal Build Error: Failed to write resource layout structural payload.");
+
+    // 3. نقوم بتمرير ملف الـ .rc المجهز لأداة embed_resource بدلاً من المانيفست مباشرة
+    embed_resource::compile(&rc_path, None::<&str>);
 
     println!("cargo:rerun-if-changed=build.rs");
 }
