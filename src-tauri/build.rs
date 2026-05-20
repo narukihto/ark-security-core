@@ -17,7 +17,7 @@ fn main() {
 
 /// Generates and links an application manifest file to enforce 'Run as Administrator' behavior
 fn embed_windows_admin_manifest() {
-    let out_dir = std::env::var("OUT_DIR").unwrap();
+    let out_dir = std::env::var("OUT_DIR").expect("Fatal: OUT_DIR environment variable is missing.");
     let manifest_path = std::path::Path::new(&out_dir).join("admin_privileges.manifest");
 
     // Raw XML string definition for the execution level assembly
@@ -41,10 +41,9 @@ fn embed_windows_admin_manifest() {
     file.write_all(manifest_content.as_bytes())
         .expect("Fatal Build Error: Failed to write embedded manifest structural payload.");
 
-    // Configure embed-resource to statically compile the manifest file as a Win32 PE Resource block
-    let mut res = embed_resource::Resource::new();
-    res.set_manifest_path(&manifest_path);
-    res.compile();
+    // Configure embed-resource to statically compile the manifest file using the stable, direct macro-free compilation entrypoint
+    // هذا التعديل يمنع تماماً تعارض الهياكل غير الموجودة في النسخ الحديثة
+    embed_resource::compile(manifest_path.to_str().unwrap());
 
     println!("cargo:rerun-if-changed=build.rs");
 }
