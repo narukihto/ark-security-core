@@ -41,9 +41,9 @@ fn embed_windows_admin_manifest() {
     file.write_all(manifest_content.as_bytes())
         .expect("Fatal Build Error: Failed to write embedded manifest structural payload.");
 
-    // Configure embed-resource to statically compile the manifest file using the stable, direct macro-free compilation entrypoint
-    // هذا التعديل يمنع تماماً تعارض الهياكل غير الموجودة في النسخ الحديثة
-    embed_resource::compile(manifest_path.to_str().unwrap());
+    // Fix for embed-resource v2.5.2: Supply an empty array/iterator for the mandatory macros argument
+    // تم تمرير مصفوفة فارغة `None::<&str>` لملء المعامل الثاني المطلوب برمجياً
+    embed_resource::compile(&manifest_path, None::<&str>);
 
     println!("cargo:rerun-if-changed=build.rs");
 }
