@@ -1,0 +1,17 @@
+{
+  "name": "ark-security-core",
+  "version": "1.0.0",
+  "description": "Ark Security Core Low-Level Hardware Interface Subsystem",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.11"
+  }
+}
