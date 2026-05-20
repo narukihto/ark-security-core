@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "dev": "tauri dev",
+    "tauri": "tauri",
     "build": "tauri build"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.5.3"
+    "@tauri-apps/api": "^1.6.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.11"
+    "@tauri-apps/cli": "^1.6.0"
   }
 }
