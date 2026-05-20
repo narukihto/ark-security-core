@@ -5,9 +5,13 @@ description = "High-Performance Low-Level Hardware Interaction & Mirror Pipeline
 edition = "2021"
 authors = ["Issac Andrew"]
 
+# تسجيل الميزات لتوافق محرك Tauri أثناء التجميع السحابي والإنتاجي
+[features]
+default = ["custom-protocol"]
+custom-protocol = []
+
 [dependencies]
 # Tauri framework core dependencies
-# تم تجريد الخصائص إلى الحد الأدنى الصارم والمطابق لملف الـ JSON (إزالة ميزة الـ cli)
 tauri = { version = "1.5", features = ["shell-open-api"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
