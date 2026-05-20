@@ -1,5 +1,9 @@
 // src-tauri/src/protocols/mod.rs
 
+
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 // Register individual low-level device communication protocols
 pub mod adb;
 pub mod fastboot;
