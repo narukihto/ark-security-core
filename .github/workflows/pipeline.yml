@@ -37,7 +37,6 @@ jobs:
           key: ${{ runner.os }}-cargo-audit-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: "Enforce Code Style Constraints (Format Check)"
-        # تم تعديل المسار هنا ليكون مباشر ومحمي
         run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 
       - name: "Execute Static Analysis & Lints (Clippy)"
@@ -60,6 +59,8 @@ jobs:
         with:
           node-version: 18
           cache: "npm"
+          # تم ربط الكاش بملف package.json المتواجد في الجذر مباشرة الآن
+          cache-dependency-path: package.json
 
       - name: "Generate Package Lock & Install Frontend Dependencies"
         run: npm install
@@ -83,10 +84,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: "." # إجبار التاوري على قراءة النواة من الجذر الفعلي للـ workspace
+          projectPath: "." # قراءة إعدادات الإقلاع والـ tauri.conf.json من مسار الجذر المباشر
           tagName: v1.0.0
           releaseName: "Ark Security Core v1.0.0"
-          releaseBody: "Automated production bundle containing hardened architectural modules."
+          releaseBody: "Automated production bundle containing hardened architectural modules. Flat repository structure fully synchronized."
           releaseDraft: true
           prerelease: false
 
