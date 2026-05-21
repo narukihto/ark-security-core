@@ -28,10 +28,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~  / .cargo/bin/
-            ~  / .cargo/registry/index/
-            ~  / .cargo/registry/cache/
-            ~  / .cargo/git/db/
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             src-tauri/target/
           key: ${{ runner.os }}-cargo-audit-${{ hashFiles('src-tauri/Cargo.toml') }}
 
@@ -63,6 +63,8 @@ jobs:
     name: "Compile Secure Win10/11 Production Artifact"
     needs: audit-and-verify
     runs-on: windows-2022
+    permissions:
+      contents: write
 
     steps:
       - name: "Checkout Code Repository"
@@ -85,10 +87,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~  / .cargo/bin/
-            ~  / .cargo/registry/index/
-            ~  / .cargo/registry/cache/
-            ~  / .cargo/git/db/
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             src-tauri/target/
           key: ${{ runner.os }}-cargo-build-${{ hashFiles('src-tauri/Cargo.toml') }}
 
@@ -116,7 +118,6 @@ jobs:
           releaseBody: "Automated production bundle containing hardened architectural modules. Flat repository structure fully synchronized."
           releaseDraft: true
           prerelease: false
-          
           args: ""
 
       - name: "Upload Hardened Production Artifacts"
