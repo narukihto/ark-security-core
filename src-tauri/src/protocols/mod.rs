@@ -3,10 +3,6 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use crate::core::mirror::MirrorSystem;
-use crate::protocols::mtk_relay::MtkRelayInterface;
-use std::sync::Mutex;
-
 // Register individual low-level device communication protocols
 pub mod adb;
 pub mod fastboot;
@@ -28,43 +24,4 @@ impl Default for ProtocolConfig {
             chunk_size: 4096, // 4KB atomic buffer packet chunk sizing
         }
     }
-}
-
-// =========================================================================
-// TAURI COMMANDS BRIDGE 
-// =========================================================================
-
-#[tauri::command]
-pub async fn launch_mtk_bypass(
-    state: tauri::State<'_, Mutex<MirrorSystem>>,
-    chip_name: String,
-) -> Result<String, String> {
-    let mut system = state.lock().map_err(|_| "Failed to lock MirrorSystem state.")?;
-    let mtk = MtkRelayInterface::new();
-    
-    mtk.execute_brom_handshake(&mut system, &chip_name)
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-pub async fn upload_mtk_loader(
-    state: tauri::State<'_, Mutex<MirrorSystem>>,
-    da_filename: String,
-) -> Result<String, String> {
-    let mut system = state.lock().map_err(|_| "Failed to lock MirrorSystem state.")?;
-    let mtk = MtkRelayInterface::new();
-    
-    mtk.inject_download_agent(&mut system, &da_filename)
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-pub async fn wipe_mtk_frp(
-    state: tauri::State<'_, Mutex<MirrorSystem>>,
-) -> Result<String, String> {
-    let mut system = state.lock().map_err(|_| "Failed to lock MirrorSystem state.")?;
-    let mtk = MtkRelayInterface::new();
-    
-    mtk.execute_frp_clear_sequence(&mut system)
-        .map_err(|e| e.to_string())
 }
