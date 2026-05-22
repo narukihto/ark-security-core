@@ -53,7 +53,7 @@ async fn initialize_hardware_beam(
 }
 
 // =========================================================================
-// DYNAMIC DUAL-USE PROTOCOL PIPELINE HANDSHAKERS
+// MEDIATEK PIPELINE HANDSHAKERS (المراحل الثلاث للـ MTK)
 // =========================================================================
 
 /// Stage 1: Core MediaTek Bootrom Bypass Hook
@@ -104,6 +104,59 @@ async fn wipe_mtk_frp(state: State<'_, AppEngineState>) -> Result<String, String
         .map_err(|e| e.to_string())
 }
 
+// =========================================================================
+// QUALCOMM EDL 9008 PIPELINE HANDSHAKERS 
+// =========================================================================
+
+/// Stage 1: Dispatches the primary hardware synchronization and Firehose Hello structure
+#[tauri::command]
+async fn launch_qcom_bypass(state: State<'_, AppEngineState>) -> Result<String, String> {
+    if state.black_stone.is_locked() {
+        return Err("Execution Denied: System is under emergency lockdown.".to_string());
+    }
+
+    let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
+    let qcom = QualcommEdlInterface::new();
+    
+    qcom.execute_edl_handshake(&mut system)
+        .map_err(|e| e.to_string())
+}
+
+/// Stage 2: Streams and verifies any specified bkerler Firehose loader binary directly into device memory
+#[tauri::command]
+async fn upload_qcom_loader(
+    state: State<'_, AppEngineState>,
+    loader_filename: String,
+) -> Result<String, String> {
+    if state.black_stone.is_locked() {
+        return Err("Execution Denied: System is under emergency lockdown.".to_string());
+    }
+
+    let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
+    let qcom = QualcommEdlInterface::new();
+    
+    qcom.load_firehose_programmer(&mut system, &loader_filename)
+        .map_err(|e| e.to_string())
+}
+
+/// Stage 3: Clears persistent partition tables to bypass security and lock mechanisms
+#[tauri::command]
+async fn wipe_qcom_frp(state: State<'_, AppEngineState>) -> Result<String, String> {
+    if state.black_stone.is_locked() {
+        return Err("Execution Denied: System is under emergency lockdown.".to_string());
+    }
+
+    let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
+    let qcom = QualcommEdlInterface::new();
+    
+    qcom.execute_storage_wipe(&mut system)
+        .map_err(|e| e.to_string())
+}
+
+// =========================================================================
+// LEGACY SINGLE-STAGE ENTRY POINTS
+// =========================================================================
+
 /// Legacy single-stage entry point preserved for concurrent protocol routines
 #[tauri::command]
 async fn execute_protocol_handshake(state: State<'_, AppEngineState>, platform: String) -> Result<String, String> {
@@ -114,10 +167,6 @@ async fn execute_protocol_handshake(state: State<'_, AppEngineState>, platform: 
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
 
     match platform.to_lowercase().as_str() {
-        "qualcomm" => {
-            let qualcomm = QualcommEdlInterface::new();
-            qualcomm.execute_edl_handshake(&mut system).map_err(|e| e.to_string())
-        },
         "samsung" => {
             let sam = SamsungOdinInterface::new();
             sam.execute_odin_handshake(&mut system).map_err(|e| e.to_string())
@@ -163,6 +212,9 @@ fn main() {
             launch_mtk_bypass,
             upload_mtk_loader,
             wipe_mtk_frp,
+            launch_qcom_bypass,    
+            upload_qcom_loader,
+            wipe_qcom_frp,
             execute_protocol_handshake,
             trigger_black_stone_lock,
             execute_system_reset
