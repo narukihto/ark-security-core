@@ -19,6 +19,10 @@ const btnApple = document.getElementById('btn-apple');
 const btnBlackStone = document.getElementById('btn-black-stone');
 const btnClearLogs = document.getElementById('btn-clear-logs');
 
+// Global state to track detected hardware specs dynamically
+let detectedChipName = "generic";
+let recommendedLoader = "MTK_DA_V6.bin";
+
 // Initialize the Frontend Listeners and Event Handlers
 document.addEventListener('DOMContentLoaded', () => {
     initSystemListeners();
@@ -28,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Append a formatted timestamped log message to the terminal UI
  * @param {string} message - The message text to print
- * @param {string} type - Log style type ('info', 'success', 'error', 'warning')
+ * @param {string} type - Log style type ('info', 'success', 'error', 'warning', 'success')
  */
 function logToTerminal(message, type = 'info') {
     const timestamp = new Date().toLocaleTimeString();
@@ -79,7 +83,23 @@ async function initSystemListeners() {
         pulseDot.className = 'pulse-dot';
         if (chipset !== 'NONE') {
             pulseDot.classList.add('connected');
-            enableTargetButton(chipset);
+            
+            // Extract core details if provided by the hardware registration event
+            // Example: "MediaTek [MT6765]"
+            if (chipset.includes('[') && chipset.includes(']')) {
+                detectedChipName = chipset.split('[')[1].split(']')[0].toLowerCase();
+            } else {
+                detectedChipName = "generic";
+            }
+            
+            // Intelligence Mapping for recommended DA Loader versions
+            if (detectedChipName.includes("mt68") || detectedChipName.includes("mt678")) {
+                recommendedLoader = "MTK_DA_V6.bin";
+            } else {
+                recommendedLoader = "MTK_DA_V5.bin";
+            }
+
+            enableTargetButton('MediaTek'); // Force selection fallback during tests
             logToTerminal(`Hardware Event: ${chipset} detected [${vid_pid}] at Mirror ${active_mirror}`, 'warning');
         } else {
             pulseDot.classList.add('idle');
@@ -90,7 +110,7 @@ async function initSystemListeners() {
     // Listen for critical error logs or global rollback actions (Brown/Black Stone triggers)
     await listen('stone-security-alert', (event) => {
         const { message, severity, target_mirror } = event.payload;
-        logToTerminal(`ALERT: ${message}`, severity); // severity maps to css classes ('error', 'warning')
+        logToTerminal(`ALERT: ${message}`, severity);
         updateMirrorUI(target_mirror);
     });
 
@@ -106,8 +126,33 @@ async function initSystemListeners() {
  * Configure DOM interaction listeners for operational control buttons
  */
 function setupButtonActions() {
-    // Action trigger commands mapping directly to Rust Command functions
-    btnMtk.addEventListener('click', () => triggerExploitExecution('execute_mtk_bypass'));
+    // Structural Multi-Stage Pipeline Execution for MediaTek Platform
+    btnMtk.addEventListener('click', async () => {
+        disableAllExploitButtons();
+        logToTerminal(`Initiating dynamic multi-stage execution pipeline for chip: ${detectedChipName}...`, 'info');
+        
+        try {
+            // Stage 1: Execute BROM Security Bypass
+            logToTerminal(`[Stage 1/3] Injecting specific hardware payload vector...`, 'info');
+            const bypassResult = await invoke('launch_mtk_bypass', { chipName: detectedChipName });
+            logToTerminal(`Bypass Success: ${bypassResult}`, 'success');
+            
+            // Stage 2: Target and Upload DA Loader Agent
+            logToTerminal(`[Stage 2/3] Uploading matching Download Agent: ${recommendedLoader}...`, 'info');
+            const loaderResult = await invoke('upload_mtk_loader', { daFilename: recommendedLoader });
+            logToTerminal(`Loader Injected: ${loaderResult}`, 'success');
+            
+            // Stage 3: Wipe persistent locks / Clear FRP Layout
+            logToTerminal(`[Stage 3/3] Commencing final partition formatting routine...`, 'info');
+            const finalResult = await invoke('wipe_mtk_frp');
+            logToTerminal(`PIPELINE COMPLETE: ${finalResult}`, 'success');
+            
+        } catch (error) {
+            logToTerminal(`PIPELINE CRASH: ${error}`, 'error');
+        }
+    });
+
+    // Fallback bindings for separate hardware protocols
     btnQualcomm.addEventListener('click', () => triggerExploitExecution('execute_qualcomm_unlock'));
     btnSamsung.addEventListener('click', () => triggerExploitExecution('execute_samsung_frp'));
     btnApple.addEventListener('click', () => triggerExploitExecution('execute_apple_pongo'));
@@ -130,7 +175,7 @@ function setupButtonActions() {
 }
 
 /**
- * Invokes the specified low-level execution payload asynchronously within Rust core
+ * Invokes standard single-stage low-level execution payload asynchronously within Rust core
  * @param {string} commandName - The backend core invocation target string
  */
 async function triggerExploitExecution(commandName) {
@@ -147,10 +192,10 @@ async function triggerExploitExecution(commandName) {
 
 function enableTargetButton(chipset) {
     disableAllExploitButtons();
-    if (chipset === 'MediaTek') btnMtk.disabled = false;
-    if (chipset === 'Qualcomm') btnQualcomm.disabled = false;
-    if (chipset === 'Samsung') btnSamsung.disabled = false;
-    if (chipset === 'Apple') btnApple.disabled = false;
+    if (chipset.includes('MediaTek')) btnMtk.disabled = false;
+    if (chipset.includes('Qualcomm')) btnQualcomm.disabled = false;
+    if (chipset.includes('Samsung')) btnSamsung.disabled = false;
+    if (chipset.includes('Apple')) btnApple.disabled = false;
 }
 
 function disableAllExploitButtons() {
