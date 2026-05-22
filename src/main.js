@@ -21,7 +21,8 @@ const btnClearLogs = document.getElementById('btn-clear-logs');
 
 // Global state to track detected hardware specs dynamically
 let detectedChipName = "generic";
-let recommendedLoader = "MTK_DA_V6.bin";
+let recommendedMtkLoader = "MTK_DA_V6.bin";
+let recommendedQcomLoader = "0000000000200000_27fe520d8259d21a_fhprg.bin"; // 
 
 // Initialize the Frontend Listeners and Event Handlers
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Append a formatted timestamped log message to the terminal UI
  * @param {string} message - The message text to print
- * @param {string} type - Log style type ('info', 'success', 'error', 'warning', 'success')
+ * @param {string} type - Log style type ('info', 'success', 'error', 'warning')
  */
 function logToTerminal(message, type = 'info') {
     const timestamp = new Date().toLocaleTimeString();
@@ -85,21 +86,39 @@ async function initSystemListeners() {
             pulseDot.classList.add('connected');
             
             // Extract core details if provided by the hardware registration event
-            // Example: "MediaTek [MT6765]"
             if (chipset.includes('[') && chipset.includes(']')) {
                 detectedChipName = chipset.split('[')[1].split(']')[0].toLowerCase();
             } else {
                 detectedChipName = "generic";
             }
             
-            // Intelligence Mapping for recommended DA Loader versions
-            if (detectedChipName.includes("mt68") || detectedChipName.includes("mt678")) {
-                recommendedLoader = "MTK_DA_V6.bin";
-            } else {
-                recommendedLoader = "MTK_DA_V5.bin";
+            // Intelligence Mapping for MediaTek and Qualcomm recommended loaders
+            if (chipset.toUpperCase().includes('MEDIATEK')) {
+                if (detectedChipName.includes("mt68") || detectedChipName.includes("mt678")) {
+                    recommendedMtkLoader = "MTK_DA_V6.bin";
+                } else {
+                    recommendedMtkLoader = "MTK_DA_V5.bin";
+                }
+                enableTargetButton('MediaTek');
+            } 
+            else if (chipset.toUpperCase().includes('QUALCOMM') || chipset.toUpperCase().includes('SAMSUNG_QCOM')) {
+                // فلترة ذكية لملفات bkerler بناءً على قراءة الهوية المكتشفة
+                if (detectedChipName.includes("a528") || detectedChipName.includes("a52s")) {
+                    recommendedQcomLoader = "001920E100200000_4A14C27B518909E1_fhprg.elf";
+                } else if (detectedChipName.includes("redmi9t")) {
+                    recommendedQcomLoader = "001360e100720000_1bebe3863a6781db_fhprg_redmi9t.bin";
+                } else if (detectedChipName.includes("poco_f1")) {
+                    recommendedQcomLoader = "0008b0e100720000_c924a35f39ce1cdd_fhprg_edlauth_poco_f1.bin";
+                } else {
+                    recommendedQcomLoader = "0000000000200000_27fe520d8259d21a_fhprg.bin"; // الفولباك العام
+                }
+                enableTargetButton('Qualcomm');
+            } else if (chipset.toUpperCase().includes('SAMSUNG')) {
+                enableTargetButton('Samsung');
+            } else if (chipset.toUpperCase().includes('APPLE')) {
+                enableTargetButton('Apple');
             }
 
-            enableTargetButton('MediaTek'); // Force selection fallback during tests
             logToTerminal(`Hardware Event: ${chipset} detected [${vid_pid}] at Mirror ${active_mirror}`, 'warning');
         } else {
             pulseDot.classList.add('idle');
@@ -126,24 +145,21 @@ async function initSystemListeners() {
  * Configure DOM interaction listeners for operational control buttons
  */
 function setupButtonActions() {
-    // Structural Multi-Stage Pipeline Execution for MediaTek Platform
+    // MediaTek Multi-Stage Execution Pipeline
     btnMtk.addEventListener('click', async () => {
         disableAllExploitButtons();
-        logToTerminal(`Initiating dynamic multi-stage execution pipeline for chip: ${detectedChipName}...`, 'info');
+        logToTerminal(`Initiating dynamic multi-stage execution pipeline for MTK: ${detectedChipName}...`, 'info');
         
         try {
-            // Stage 1: Execute BROM Security Bypass
-            logToTerminal(`[Stage 1/3] Injecting specific hardware payload vector...`, 'info');
+            logToTerminal(`[Stage 1/3] Injecting BROM hardware payload vector...`, 'info');
             const bypassResult = await invoke('launch_mtk_bypass', { chipName: detectedChipName });
             logToTerminal(`Bypass Success: ${bypassResult}`, 'success');
             
-            // Stage 2: Target and Upload DA Loader Agent
-            logToTerminal(`[Stage 2/3] Uploading matching Download Agent: ${recommendedLoader}...`, 'info');
-            const loaderResult = await invoke('upload_mtk_loader', { daFilename: recommendedLoader });
+            logToTerminal(`[Stage 2/3] Uploading Download Agent: ${recommendedMtkLoader}...`, 'info');
+            const loaderResult = await invoke('upload_mtk_loader', { daFilename: recommendedMtkLoader });
             logToTerminal(`Loader Injected: ${loaderResult}`, 'success');
             
-            // Stage 3: Wipe persistent locks / Clear FRP Layout
-            logToTerminal(`[Stage 3/3] Commencing final partition formatting routine...`, 'info');
+            logToTerminal(`[Stage 3/3] Commencing final MTK partition formatting routine...`, 'info');
             const finalResult = await invoke('wipe_mtk_frp');
             logToTerminal(`PIPELINE COMPLETE: ${finalResult}`, 'success');
             
@@ -152,10 +168,32 @@ function setupButtonActions() {
         }
     });
 
+    // Qualcomm EDL 9008 Multi-Stage Execution Pipeline (التحديث الجديد المطابق للمراحل الثلاث)
+    btnQualcomm.addEventListener('click', async () => {
+        disableAllExploitButtons();
+        logToTerminal(`Initiating dynamic multi-stage execution pipeline for Qualcomm EDL 9008...`, 'info');
+        
+        try {
+            logToTerminal(`[Stage 1/3] Establishing synchronous EDL handshake channel...`, 'info');
+            const bypassResult = await invoke('launch_qcom_bypass');
+            logToTerminal(`Handshake Active: ${bypassResult}`, 'success');
+            
+            logToTerminal(`[Stage 2/3] Streaming bkerler Firehose Programmer: ${recommendedQcomLoader}...`, 'info');
+            const loaderResult = await invoke('upload_qcom_loader', { loaderFilename: recommendedQcomLoader });
+            logToTerminal(`Firehose Injected: ${loaderResult}`, 'success');
+            
+            logToTerminal(`[Stage 3/3] Executing structural partition storage layout wipe...`, 'info');
+            const finalResult = await invoke('wipe_qcom_frp');
+            logToTerminal(`PIPELINE COMPLETE: ${finalResult}`, 'success');
+            
+        } catch (error) {
+            logToTerminal(`QUALCOMM PIPELINE CRASH: ${error}`, 'error');
+        }
+    });
+
     // Fallback bindings for separate hardware protocols
-    btnQualcomm.addEventListener('click', () => triggerExploitExecution('execute_qualcomm_unlock'));
-    btnSamsung.addEventListener('click', () => triggerExploitExecution('execute_samsung_frp'));
-    btnApple.addEventListener('click', () => triggerExploitExecution('execute_apple_pongo'));
+    btnSamsung.addEventListener('click', () => triggerExploitExecution('execute_protocol_handshake', { platform: 'samsung' }));
+    btnApple.addEventListener('click', () => triggerExploitExecution('execute_protocol_handshake', { platform: 'apple' }));
 
     // The Black Stone Gate - Global Emergency Interruption
     btnBlackStone.addEventListener('click', async () => {
@@ -177,13 +215,14 @@ function setupButtonActions() {
 /**
  * Invokes standard single-stage low-level execution payload asynchronously within Rust core
  * @param {string} commandName - The backend core invocation target string
+ * @param {object} args - Arguments to pass to the command
  */
-async function triggerExploitExecution(commandName) {
+async function triggerExploitExecution(commandName, args = {}) {
     disableAllExploitButtons();
     logToTerminal(`Initiating data beam transmission via: ${commandName}...`, 'info');
     
     try {
-        const result = await invoke(commandName);
+        const result = await invoke(commandName, args);
         logToTerminal(`SUCCESS: ${result}`, 'success');
     } catch (error) {
         logToTerminal(`EXECUTION FAILURE: ${error}`, 'error');
