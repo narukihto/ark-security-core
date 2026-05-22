@@ -53,7 +53,7 @@ async fn initialize_hardware_beam(
 }
 
 // =========================================================================
-// MEDIATEK PIPELINE HANDSHAKERS (المراحل الثلاث للـ MTK)
+// MEDIATEK PIPELINE HANDSHAKERS
 // =========================================================================
 
 /// Stage 1: Core MediaTek Bootrom Bypass Hook
@@ -105,7 +105,7 @@ async fn wipe_mtk_frp(state: State<'_, AppEngineState>) -> Result<String, String
 }
 
 // =========================================================================
-// QUALCOMM EDL 9008 PIPELINE HANDSHAKERS 
+// QUALCOMM EDL 9008 PIPELINE HANDSHAKERS
 // =========================================================================
 
 /// Stage 1: Dispatches the primary hardware synchronization and Firehose Hello structure
@@ -212,7 +212,7 @@ fn main() {
             launch_mtk_bypass,
             upload_mtk_loader,
             wipe_mtk_frp,
-            launch_qcom_bypass,    
+            launch_qcom_bypass,
             upload_qcom_loader,
             wipe_qcom_frp,
             execute_protocol_handshake,
