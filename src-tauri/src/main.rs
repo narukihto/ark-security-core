@@ -30,17 +30,17 @@ async fn initialize_hardware_beam(
     pid: u16,
     state: State<'_, AppEngineState>,
 ) -> Result<String, String> {
-    // Step 1: Check emergency brake state before parsing any commands
+    // Check emergency brake state before parsing any commands
     if state.black_stone.is_locked() {
         return Err("Execution Denied: Black Stone Emergency Gate is active. System Frozen.".to_string());
     }
 
-    // Step 2: Query the hardware database signature mapping in O(1) time
+    // Query the hardware database signature mapping in O(1) time
     let matched_device: TargetDevice = HardwareDatabase::match_signature(vid, pid);
     
     let mut system = state.mirror_system.lock().map_err(|_| "Failed to acquire system lock matrix.")?;
     
-    // Step 3: Construct the localized data beam container and feed it to mirror 1
+    // Construct the localized data beam container and feed it to mirror 1
     let payload_metadata = format!("DEVICE_PROFILE::{:?}::{}", matched_device.chipset, matched_device.primary_exploit_target);
     let beam = DataBeam::new(BeamSpectrum::Red, payload_metadata.into_bytes());
 
@@ -52,7 +52,59 @@ async fn initialize_hardware_beam(
     ))
 }
 
-/// Tauri command to stream the appropriate low-level protocol sequence based on the active mirror depth
+// =========================================================================
+// DYNAMIC DUAL-USE PROTOCOL PIPELINE HANDSHAKERS
+// =========================================================================
+
+/// Stage 1: Core MediaTek Bootrom Bypass Hook
+#[tauri::command]
+async fn launch_mtk_bypass(
+    state: State<'_, AppEngineState>,
+    chip_name: String,
+) -> Result<String, String> {
+    if state.black_stone.is_locked() {
+        return Err("Execution Denied: System is under emergency lockdown.".to_string());
+    }
+
+    let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
+    let mtk = MtkRelayInterface::new();
+    
+    mtk.execute_brom_handshake(&mut system, &chip_name)
+        .map_err(|e| e.to_string())
+}
+
+/// Stage 2: Injects Custom Download Agents into Target Internal SRAM
+#[tauri::command]
+async fn upload_mtk_loader(
+    state: State<'_, AppEngineState>,
+    da_filename: String,
+) -> Result<String, String> {
+    if state.black_stone.is_locked() {
+        return Err("Execution Denied: System is under emergency lockdown.".to_string());
+    }
+
+    let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
+    let mtk = MtkRelayInterface::new();
+    
+    mtk.inject_download_agent(&mut system, &da_filename)
+        .map_err(|e| e.to_string())
+}
+
+/// Stage 3: Executes Storage Layout Alignment Updates and Wipe Configurations
+#[tauri::command]
+async fn wipe_mtk_frp(state: State<'_, AppEngineState>) -> Result<String, String> {
+    if state.black_stone.is_locked() {
+        return Err("Execution Denied: System is under emergency lockdown.".to_string());
+    }
+
+    let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
+    let mtk = MtkRelayInterface::new();
+    
+    mtk.execute_frp_clear_sequence(&mut system)
+        .map_err(|e| e.to_string())
+}
+
+/// Legacy single-stage entry point preserved for concurrent protocol routines
 #[tauri::command]
 async fn execute_protocol_handshake(state: State<'_, AppEngineState>, platform: String) -> Result<String, String> {
     if state.black_stone.is_locked() {
@@ -61,12 +113,7 @@ async fn execute_protocol_handshake(state: State<'_, AppEngineState>, platform: 
 
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
 
-    // Route execution dynamically to the proper protocol interface suite
     match platform.to_lowercase().as_str() {
-        "mediatek" => {
-            let mtk = MtkRelayInterface::new();
-            mtk.execute_brom_handshake(&mut system).map_err(|e| e.to_string())
-        },
         "qualcomm" => {
             let qualcomm = QualcommEdlInterface::new();
             qualcomm.execute_edl_handshake(&mut system).map_err(|e| e.to_string())
@@ -79,26 +126,23 @@ async fn execute_protocol_handshake(state: State<'_, AppEngineState>, platform: 
             let apple = ApplePongoInterface::new();
             apple.execute_dfu_handshake(&mut system).map_err(|e| e.to_string())
         },
-        _ => Err("Unsupported protocol architecture configuration requested.".to_string()),
+        _ => Err("Fallback wrapper only supports legacy single-stage interfaces.".to_string()),
     }
 }
 
-/// Tauri command providing an instant API bridge to trigger the global Black Stone Emergency Brake
+/// Omni-channel IPC trigger to lock onto the global Black Stone security gate
 #[tauri::command]
-fn trigger_emergency_brake(state: State<'_, AppEngineState>) -> String {
+fn trigger_black_stone_lock(state: State<'_, AppEngineState>) -> String {
     state.black_stone.activate_lock();
     "CRITICAL: Black Stone Atomic Lock Triggered. All hardware communication channels severed.".to_string()
 }
 
-/// Tauri command to release emergency locks, sanitize cache registers, and perform a full hard rollback
+/// Clear atomic signaling barriers and release secure lock layers
 #[tauri::command]
 async fn execute_system_reset(state: State<'_, AppEngineState>) -> Result<String, String> {
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
     
-    // 1. Clear atomic signaling barriers
     state.black_stone.release_lock();
-
-    // 2. Erase memory registers physically via the Brown Stone Sanitizer
     let current_index = state.brown_stone.sanitize_and_rollback(&mut system);
 
     Ok(format!(
@@ -116,8 +160,11 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             initialize_hardware_beam,
+            launch_mtk_bypass,
+            upload_mtk_loader,
+            wipe_mtk_frp,
             execute_protocol_handshake,
-            trigger_emergency_brake,
+            trigger_black_stone_lock,
             execute_system_reset
         ])
         .run(tauri::generate_context!())
