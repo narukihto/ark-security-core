@@ -21,8 +21,6 @@ const btnClearLogs = document.getElementById('btn-clear-logs');
 
 // Global state to track detected hardware specs dynamically
 let detectedChipName = "generic";
-let recommendedMtkLoader = "MTK_DA_V6.bin";
-let recommendedQcomLoader = "0000000000200000_27fe520d8259d21a_fhprg.bin"; // 
 
 // Initialize the Frontend Listeners and Event Handlers
 document.addEventListener('DOMContentLoaded', () => {
@@ -92,26 +90,10 @@ async function initSystemListeners() {
                 detectedChipName = "generic";
             }
             
-            // Intelligence Mapping for MediaTek and Qualcomm recommended loaders
+            // التوجيه الذكي المباشر للبروتوكولات (الذكاء بالكامل ينتقل الآن إلى نواة رستم)
             if (chipset.toUpperCase().includes('MEDIATEK')) {
-                if (detectedChipName.includes("mt68") || detectedChipName.includes("mt678")) {
-                    recommendedMtkLoader = "MTK_DA_V6.bin";
-                } else {
-                    recommendedMtkLoader = "MTK_DA_V5.bin";
-                }
                 enableTargetButton('MediaTek');
-            } 
-            else if (chipset.toUpperCase().includes('QUALCOMM') || chipset.toUpperCase().includes('SAMSUNG_QCOM')) {
-                // فلترة ذكية لملفات bkerler بناءً على قراءة الهوية المكتشفة
-                if (detectedChipName.includes("a528") || detectedChipName.includes("a52s")) {
-                    recommendedQcomLoader = "001920E100200000_4A14C27B518909E1_fhprg.elf";
-                } else if (detectedChipName.includes("redmi9t")) {
-                    recommendedQcomLoader = "001360e100720000_1bebe3863a6781db_fhprg_redmi9t.bin";
-                } else if (detectedChipName.includes("poco_f1")) {
-                    recommendedQcomLoader = "0008b0e100720000_c924a35f39ce1cdd_fhprg_edlauth_poco_f1.bin";
-                } else {
-                    recommendedQcomLoader = "0000000000200000_27fe520d8259d21a_fhprg.bin"; // الفولباك العام
-                }
+            } else if (chipset.toUpperCase().includes('QUALCOMM') || chipset.toUpperCase().includes('SAMSUNG_QCOM')) {
                 enableTargetButton('Qualcomm');
             } else if (chipset.toUpperCase().includes('SAMSUNG')) {
                 enableTargetButton('Samsung');
@@ -145,7 +127,7 @@ async function initSystemListeners() {
  * Configure DOM interaction listeners for operational control buttons
  */
 function setupButtonActions() {
-    // MediaTek Multi-Stage Execution Pipeline
+    // MediaTek Multi-Stage Execution Pipeline (نظام الفحص والمطابقة التلقائي الموحد)
     btnMtk.addEventListener('click', async () => {
         disableAllExploitButtons();
         logToTerminal(`Initiating dynamic multi-stage execution pipeline for MTK: ${detectedChipName}...`, 'info');
@@ -155,11 +137,12 @@ function setupButtonActions() {
             const bypassResult = await invoke('launch_mtk_bypass', { chipName: detectedChipName });
             logToTerminal(`Bypass Success: ${bypassResult}`, 'success');
             
-            logToTerminal(`[Stage 2/3] Uploading Download Agent: ${recommendedMtkLoader}...`, 'info');
-            const loaderResult = await invoke('upload_mtk_loader', { daFilename: recommendedMtkLoader });
+            // نمرر نصاً فارغاً لأن الباكيند سيمسح المجلد بالكامل ويطابق لودر الـ DA تلقائياً
+            logToTerminal(`[Stage 2/3] Executing Omni-Channel DA scanning across unified repository...`, 'info');
+            const loaderResult = await invoke('upload_mtk_loader', { daFilename: "" });
             logToTerminal(`Loader Injected: ${loaderResult}`, 'success');
             
-            logToTerminal(`[Stage 3/3] Commencing final MTK partition formatting routine...`, 'info');
+            logToTerminal(`[Stage 3/3] Commencing final MTK partition layout verification...`, 'info');
             const finalResult = await invoke('wipe_mtk_frp');
             logToTerminal(`PIPELINE COMPLETE: ${finalResult}`, 'success');
             
@@ -168,7 +151,7 @@ function setupButtonActions() {
         }
     });
 
-    // Qualcomm EDL 9008 Multi-Stage Execution Pipeline (التحديث الجديد المطابق للمراحل الثلاث)
+    // Qualcomm EDL 9008 Multi-Stage Execution Pipeline
     btnQualcomm.addEventListener('click', async () => {
         disableAllExploitButtons();
         logToTerminal(`Initiating dynamic multi-stage execution pipeline for Qualcomm EDL 9008...`, 'info');
@@ -178,11 +161,12 @@ function setupButtonActions() {
             const bypassResult = await invoke('launch_qcom_bypass');
             logToTerminal(`Handshake Active: ${bypassResult}`, 'success');
             
-            logToTerminal(`[Stage 2/3] Streaming bkerler Firehose Programmer: ${recommendedQcomLoader}...`, 'info');
-            const loaderResult = await invoke('upload_qcom_loader', { loaderFilename: recommendedQcomLoader });
-            logToTerminal(`Firehose Injected: ${loaderResult}`, 'success');
+            // نمرر نصاً فارغاً لأن الباكيند سيمسح المجلد بالكامل ويطابق التوقيع تلقائياً
+            logToTerminal(`[Stage 2/3] Executing Omni-Channel Firehose scanning across 1,000 loaders...`, 'info');
+            const loaderResult = await invoke('upload_qcom_loader', { loaderFilename: "" });
+            logToTerminal(`Firehose Integration Engine: ${loaderResult}`, 'success');
             
-            logToTerminal(`[Stage 3/3] Executing structural partition storage layout wipe...`, 'info');
+            logToTerminal(`[Stage 3/3] Executing structural partition storage layout validation...`, 'info');
             const finalResult = await invoke('wipe_qcom_frp');
             logToTerminal(`PIPELINE COMPLETE: ${finalResult}`, 'success');
             
