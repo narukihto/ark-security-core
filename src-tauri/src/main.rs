@@ -69,7 +69,8 @@ async fn launch_mtk_bypass(
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
     let mtk = MtkRelayInterface::new();
     
-    mtk.execute_brom_handshake(&mut system, &chip_name)
+    // ✅ التعديل المعماري: استخدام execute_brom_bypass بدلاً من القديمة
+    mtk.execute_brom_bypass(&mut system, &chip_name)
         .map_err(|e| e.to_string())
 }
 
@@ -86,7 +87,8 @@ async fn upload_mtk_loader(
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
     let mtk = MtkRelayInterface::new();
     
-    mtk.inject_download_agent(&mut system, &da_filename)
+    // ✅ التعديل المعماري: استخدام upload_mtk_loader بدلاً من القديمة
+    mtk.upload_mtk_loader(&mut system, &da_filename)
         .map_err(|e| e.to_string())
 }
 
@@ -100,7 +102,8 @@ async fn wipe_mtk_frp(state: State<'_, AppEngineState>) -> Result<String, String
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
     let mtk = MtkRelayInterface::new();
     
-    mtk.execute_frp_clear_sequence(&mut system)
+    // ✅ التعديل المعماري: استخدام execute_frp_wipe بدلاً من القديمة
+    mtk.execute_frp_wipe(&mut system)
         .map_err(|e| e.to_string())
 }
 
@@ -135,7 +138,8 @@ async fn upload_qcom_loader(
     let mut system = state.mirror_system.lock().map_err(|_| "System matrix lock collision.")?;
     let qcom = QualcommEdlInterface::new();
     
-    qcom.load_firehose_programmer(&mut system, &loader_filename)
+    // ✅ التعديل المعماري: استخدام upload_firehose_loader بدلاً من القديمة
+    qcom.upload_firehose_loader(&mut system, &loader_filename)
         .map_err(|e| e.to_string())
 }
 
