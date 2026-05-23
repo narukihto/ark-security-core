@@ -15,13 +15,15 @@ pub mod apple_pongo;
 pub struct ProtocolConfig {
     pub timeout_ms: u64,
     pub chunk_size: usize,
+    pub auto_validate_signatures: bool, // الميزة المضافة لتأمين فحص الـ 1,000 ملف
 }
 
 impl Default for ProtocolConfig {
     fn default() -> Self {
         Self {
-            timeout_ms: 5000, // Standard 5-second timeout for hardware response channels
-            chunk_size: 4096, // 4KB atomic buffer packet chunk sizing
+            timeout_ms: 5000,               // Standard 5-second timeout for hardware response channels
+            chunk_size: 4096,               // 4KB atomic buffer packet chunk sizing
+            auto_validate_signatures: true, // Safeguard alignment for the unified loaders layout
         }
     }
 }
